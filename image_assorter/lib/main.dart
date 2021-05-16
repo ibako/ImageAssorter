@@ -1,8 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_assorter/utils/file_dialog_util.dart' as fileDialogUtil;
+import 'package:image_assorter/settings/app_setting.dart';
+import 'package:image_assorter/views/main_screen.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  // 設定読み込み
+  final setting = AppSetting();
+  await setting.load();
+
+  // アプリ起動
+  try {
+    runApp(MyApp());
+  }
+  finally {
+    await setting.save();
+  }
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -12,12 +26,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       routes: {
-        '/': (context) => FilePickScreen(),
+        '/': (context) => MainScreen(),
       },
     );
   }
 }
 
+/*
 class FilePickScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -101,3 +116,4 @@ class _FilePickState extends State<FilePickForm> {
     });
   }
 }
+*/
