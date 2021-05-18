@@ -1,20 +1,13 @@
 import 'dart:async';
 import 'package:image_assorter/data/file_info.dart';
+import 'package:image_assorter/data/update_notification_event.dart';
 import 'package:image_assorter/models/file_searcher.dart';
 import 'package:image_assorter/settings/app_setting.dart';
-
-/// view の更新を促すためのイベント
-enum FileListEvent {
-  /// リスト更新中
-  Updating,
-  /// リスト更新完了
-  Updated,
-}
 
 /// ファイルリストの model/view をつなぐ
 class FileListController {
   final Map<String, FileSearcher> _fileSearchers = {};
-  final StreamController<FileListEvent> eventStream = StreamController<FileListEvent>();
+  final StreamController<UpdateNotificationEvent> eventStream = StreamController<UpdateNotificationEvent>();
 
   /// リストを更新します。
   void update() {
@@ -22,9 +15,9 @@ class FileListController {
     final searcher = _fileSearchers.putIfAbsent(currentDirectory, () =>
         FileSearcher(currentDirectory));
 
-    eventStream.add(FileListEvent.Updated);
+    eventStream.add(UpdateNotificationEvent.updating);
     searcher.search().then((_) =>
-        eventStream.add(FileListEvent.Updated));
+        eventStream.add(UpdateNotificationEvent.updated));
   }
 
   /// リストを取得します。
@@ -36,4 +29,13 @@ class FileListController {
   void dispose() {
     eventStream.close();
   }
+}
+
+// ---------------------------------------------------------------------
+
+/// ファイルリストの1行の model/view をつなぐ
+class FileRowController {
+  final FileInfo fileInfo;
+
+  FileRowController(this.fileInfo);
 }

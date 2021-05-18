@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_assorter/controllers/file_list_controller.dart';
 import 'package:image_assorter/data/file_info.dart';
+import 'package:image_assorter/helpers/async_widget_helper.dart';
 
 class FileListWidget extends StatefulWidget {
   @override
@@ -9,8 +11,6 @@ class FileListWidget extends StatefulWidget {
 
 class _FileListState extends State<FileListWidget> {
   final FileListController _controller = FileListController();
-  final _listTextStyle = const TextStyle(
-      fontSize: 18);
 
   @override
   void initState() {
@@ -27,31 +27,15 @@ class _FileListState extends State<FileListWidget> {
   @override
   Widget build(BuildContext context) =>
       Scaffold(
-        body: StreamBuilder(
-          stream: _controller.eventStream.stream,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return _buildList();
-            }
-
-            final data = snapshot.data;
-            if (data is! FileListEvent) {
-              throw 'unknown snapshot';
-            }
-            if (data == FileListEvent.Updating) {
-              // くるくる
-              return _buildList();
-            } else if (data == FileListEvent.Updated) {
-              return _buildList();
-            } else {
-              throw 'unknown snapshot';
-            }
-          },
-        )
-      );
+        body: createStreamBuilder(
+            stream: _controller.eventStream.stream,
+            noDataWidget: _buildList,
+            updatingWidget: _buildList,
+            updatedWidget: _buildList),
+        );
 
   Widget _buildList() {
-    final infos = _controller.getFileList();
+    final fileList = _controller.getFileList();
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) =>
           Container(
@@ -60,16 +44,42 @@ class _FileListState extends State<FileListWidget> {
                 bottom: BorderSide(color: Colors.black38),
               ),
             ),
-            child: _buildRow(infos[index]),
+            child: _FileRowWidget(fileList[index]),
           ),
-      itemCount: infos.length,
+      itemCount: fileList.length,
     );
   }
 
-  Widget _buildRow(FileInfo info) =>
+}
+
+// ------------------------------------------------------------------
+
+class _FileRowWidget extends StatefulWidget {
+  final FileInfo _fileInfo;
+
+  _FileRowWidget(this._fileInfo);
+
+  @override
+  _FileRowState createState() => _FileRowState(_fileInfo);
+}
+
+class _FileRowState extends State<_FileRowWidget> {
+  final FileInfo _fileInfo;
+  late FileRowController _controller = FileRowController(_fileInfo);
+  final _listTextStyle = const TextStyle(
+      fontSize: 18);
+
+  _FileRowState(this._fileInfo);
+
+  @override
+  Widget build(BuildContext context) =>
       ListTile(
+        leading: createFutureBuilder(
+            heavyWidgetGenerator: _createThumbnail(_fileInfo),
+            updatingWidget: () => Icon(Icons.image),
+        ),
         title: Text(
-          info.name,
+          _fileInfo.name,
           style: _listTextStyle,
         ),
         trailing: Icon(
@@ -78,4 +88,14 @@ class _FileListState extends State<FileListWidget> {
         onTap: () {
         },
       );
+
+  Future<Widget> _createThumbnail(FileInfo info) {
+    return Future(() =>
+        Image.file(
+          File(_fileInfo.path),
+          cacheWidth: 32,
+          cacheHeight: 32,
+      ),
+    );
+  }
 }
