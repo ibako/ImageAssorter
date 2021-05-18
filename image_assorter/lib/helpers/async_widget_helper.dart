@@ -7,14 +7,15 @@ typedef WidgetGenerator = Widget Function();
 /// Controller から更新通知を受け取る View を作成します。
 /// 複数回、Controller から通知を受ける可能性がある場合に最適です。
 /// 初期化の非同期処理のみが必要な場合は [createFutureBuilder] を利用してください。
-StreamBuilder<UpdateNotificationEvent> createStreamBuilder({
-  required Stream<UpdateNotificationEvent> stream, required WidgetGenerator noDataWidget,
-  required WidgetGenerator updatingWidget, required WidgetGenerator updatedWidget }) {
+StreamBuilder<UpdateNotificationEvent> createStreamBuilder(
+    Stream<UpdateNotificationEvent> stream, {
+      WidgetGenerator? defaultWidget, WidgetGenerator? noDataWidget,
+      WidgetGenerator? updatingWidget, WidgetGenerator? updatedWidget }) {
   return StreamBuilder(
       stream: stream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return noDataWidget();
+          return noDataWidget?.call() ?? defaultWidget!.call();
         }
 
         final data = snapshot.data;
@@ -23,9 +24,9 @@ StreamBuilder<UpdateNotificationEvent> createStreamBuilder({
         }
 
         if (data == UpdateNotificationEvent.updating) {
-          return updatingWidget();
+          return updatingWidget?.call() ?? defaultWidget!.call();
         } else if (data == UpdateNotificationEvent.updated) {
-          return updatedWidget();
+          return updatedWidget?.call() ?? defaultWidget!.call();
         } else {
           throw UnknownEventException('unknown event: $data}');
         }

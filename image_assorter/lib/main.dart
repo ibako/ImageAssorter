@@ -23,8 +23,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Image Assorter',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      theme: ThemeData.dark(),
+      //theme: ThemeData.light(),
+      //darkTheme: ThemeData.dark(),
       routes: {
         '/': (context) => MainScreen(),
       },

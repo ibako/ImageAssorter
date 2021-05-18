@@ -28,14 +28,14 @@ class _FileListState extends State<FileListWidget> {
   Widget build(BuildContext context) =>
       Scaffold(
         body: createStreamBuilder(
-            stream: _controller.eventStream.stream,
-            noDataWidget: _buildList,
-            updatingWidget: _buildList,
-            updatedWidget: _buildList),
-        );
+            _controller.eventStream.stream,
+            defaultWidget: _buildList
+        ),
+      );
 
   Widget _buildList() {
-    final fileList = _controller.getFileList();
+    final fileList = _controller.getFileList()
+        ..sort((x, y) => x.fileType.index.compareTo(y.fileType.index));
     return ListView.builder(
       itemBuilder: (BuildContext context, int index) =>
           Container(
@@ -64,23 +64,31 @@ class _FileRowWidget extends StatefulWidget {
 }
 
 class _FileRowState extends State<_FileRowWidget> {
+  static const double _imageHeight = 42;
+
   final FileInfo _fileInfo;
   late FileRowController _controller = FileRowController(_fileInfo);
-  final _listTextStyle = const TextStyle(
-      fontSize: 18);
+  final _listTextStyleNormal = const TextStyle(fontSize: 18);
+  final _listTextStyleError = const TextStyle(fontSize: 18, color: Colors.red);
 
   _FileRowState(this._fileInfo);
 
   @override
   Widget build(BuildContext context) =>
       ListTile(
-        leading: createFutureBuilder(
-            heavyWidgetGenerator: _createThumbnail(_fileInfo),
-            updatingWidget: () => Icon(Icons.image),
+        leading: Container(
+          width: 64,
+          margin: EdgeInsets.all(2),
+          child: Center(
+            child: createFutureBuilder(
+              heavyWidgetGenerator: _createThumbnail(_fileInfo),
+              updatingWidget: () => Icon(Icons.image),
+            ),
+          ),
         ),
-        title: Text(
-          _fileInfo.name,
-          style: _listTextStyle,
+        title: createStreamBuilder(
+          _controller.eventStream.stream,
+          defaultWidget: _createTitle,
         ),
         trailing: Icon(
           Icons.more_vert,
@@ -90,12 +98,32 @@ class _FileRowState extends State<_FileRowWidget> {
       );
 
   Future<Widget> _createThumbnail(FileInfo info) {
-    return Future(() =>
-        Image.file(
+    return Future(() {
+      if (info.fileType == FileType.directory) {
+        return Icon(Icons.folder, size: _imageHeight, color: Colors.blue,);
+      }
+
+      try {
+        return Image.file(
           File(_fileInfo.path),
-          cacheWidth: 32,
-          cacheHeight: 32,
-      ),
-    );
+          height: _imageHeight,
+          isAntiAlias: true,
+          errorBuilder: (context, error, stackTrace) => _createErrorThumbnail(),
+        );
+      } catch (e) {
+        return _createErrorThumbnail();
+      }
+    });
   }
+
+  Widget _createErrorThumbnail() {
+    _controller.setAsError();
+    return Icon(Icons.error, size:_imageHeight, color: Colors.red);
+  }
+
+  Widget _createTitle() =>
+      Text(
+        _fileInfo.name,
+        style: _controller.isError ? _listTextStyleError : _listTextStyleNormal,
+      );
 }
