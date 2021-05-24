@@ -9,7 +9,7 @@ class DirectorySearcher {
   /// ルートディレクトリ以下のディレクトリを検索し、[rootDirectoryInfo] に格納する。
   Future search() async {
     final root = AppSetting().rootDirectoryPath;
-    await _createRecursive(root);
+    rootDirectoryInfo = await _createRecursive(root);
   }
 
   Future<DirectoryInfo> _createRecursive(String path) async {
