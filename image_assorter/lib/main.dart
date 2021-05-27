@@ -12,8 +12,7 @@ void main() async {
   // アプリ起動
   try {
     runApp(MyApp());
-  }
-  finally {
+  } finally {
     await setting.save();
   }
 }

@@ -6,18 +6,19 @@ import 'package:image_assorter/settings/app_setting.dart';
 
 /// ファイルリストの model/view をつなぐ
 class FileListController {
-  final Map<String, FileSearcher> _fileSearchers = {};
-  final StreamController<UpdateNotificationEvent> eventStream = StreamController<UpdateNotificationEvent>();
+  final _fileSearchers = <String, FileSearcher>{};
+  final eventStream = StreamController<UpdateNotificationEvent>();
 
   /// リストを更新します。
   void update() {
     final currentDirectory = AppSetting().currentDirectoryPath;
-    final searcher = _fileSearchers.putIfAbsent(currentDirectory, () =>
-        FileSearcher(currentDirectory));
+    final searcher = _fileSearchers.putIfAbsent(
+        currentDirectory, () => FileSearcher(currentDirectory));
 
     eventStream.add(UpdateNotificationEvent.updating);
-    searcher.search().then((_) =>
-        eventStream.add(UpdateNotificationEvent.updated));
+    searcher
+        .search()
+        .then((_) => eventStream.add(UpdateNotificationEvent.updated));
   }
 
   /// リストを取得します。
@@ -36,7 +37,7 @@ class FileListController {
 /// ファイルリストの1行の model/view をつなぐ
 class FileRowController {
   final FileInfo fileInfo;
-  final StreamController<UpdateNotificationEvent> eventStream = StreamController<UpdateNotificationEvent>();
+  final eventStream = StreamController<UpdateNotificationEvent>();
 
   bool get isError => _isError;
   bool _isError = false;

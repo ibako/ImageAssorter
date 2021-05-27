@@ -25,31 +25,26 @@ class _FileListState extends State<FileListWidget> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(
-        body: createStreamBuilder(
-            _controller.eventStream.stream,
-            defaultWidget: _buildList
-        ),
+  Widget build(BuildContext context) => Scaffold(
+        body: createStreamBuilder(_controller.eventStream.stream,
+            defaultWidget: _buildList),
       );
 
   Widget _buildList() {
     final fileList = _controller.getFileList()
-        ..sort((x, y) => x.fileType.index.compareTo(y.fileType.index));
+      ..sort((x, y) => x.fileType.index.compareTo(y.fileType.index));
     return ListView.builder(
-      itemBuilder: (BuildContext context, int index) =>
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.black38),
-              ),
-            ),
-            child: _FileRowWidget(fileList[index]),
+      itemBuilder: (BuildContext context, int index) => Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.black38),
           ),
+        ),
+        child: _FileRowWidget(fileList[index]),
+      ),
       itemCount: fileList.length,
     );
   }
-
 }
 
 // ------------------------------------------------------------------
@@ -74,8 +69,7 @@ class _FileRowState extends State<_FileRowWidget> {
   _FileRowState(this._fileInfo);
 
   @override
-  Widget build(BuildContext context) =>
-      ListTile(
+  Widget build(BuildContext context) => ListTile(
         leading: Container(
           width: 64,
           margin: EdgeInsets.all(2),
@@ -93,14 +87,17 @@ class _FileRowState extends State<_FileRowWidget> {
         trailing: Icon(
           Icons.more_vert,
         ),
-        onTap: () {
-        },
+        onTap: () {},
       );
 
   Future<Widget> _createThumbnail(FileInfo info) {
     return Future(() {
       if (info.fileType == FileType.directory) {
-        return Icon(Icons.folder, size: _imageHeight, color: Colors.blue,);
+        return Icon(
+          Icons.folder,
+          size: _imageHeight,
+          color: Colors.blue,
+        );
       }
 
       try {
@@ -108,6 +105,7 @@ class _FileRowState extends State<_FileRowWidget> {
           File(_fileInfo.path),
           height: _imageHeight,
           isAntiAlias: true,
+          fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => _createErrorThumbnail(),
         );
       } catch (e) {
@@ -118,12 +116,12 @@ class _FileRowState extends State<_FileRowWidget> {
 
   Widget _createErrorThumbnail() {
     _controller.setAsError();
-    return Icon(Icons.error, size:_imageHeight, color: Colors.red);
+    return Icon(Icons.error, size: _imageHeight, color: Colors.red);
   }
 
-  Widget _createTitle() =>
-      Text(
+  Widget _createTitle() => Text(
         _fileInfo.name,
         style: _controller.isError ? _listTextStyleError : _listTextStyleNormal,
+        overflow: TextOverflow.ellipsis,
       );
 }

@@ -1,37 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_treeview/flutter_treeview.dart';
+import 'package:flutter_simple_treeview/flutter_simple_treeview.dart';
 import 'package:image_assorter/data/directory_info.dart';
 import 'package:image_assorter/models/directory_searcher.dart';
 
+typedef NodeBuilder = Widget Function(DirectoryInfo info);
+
 /// ディレクトリリストの model/view をつなぐ
 class DirectoryListController {
+  final TreeController treeController = TreeController();
   final DirectorySearcher _directorySearcher = DirectorySearcher();
-  late TreeViewController treeViewController;
 
-  /// TreeNodeを構築する
-  Future constructNodes() async {
+  /// TreeNode を構築する
+  Future<TreeNode> constructNodes(NodeBuilder nodeBuilder) async {
     await _directorySearcher.search();
-    final rootNode =
-        _constructNodesRecursive(_directorySearcher.rootDirectoryInfo);
-    treeViewController = TreeViewController(
-      //selectedKey:
-      children: [rootNode],
-    );
+    return _constructNodesRecursive(
+        _directorySearcher.rootDirectoryInfo, nodeBuilder);
   }
 
-  Node _constructNodesRecursive(DirectoryInfo directoryInfo) {
-    final children = <Node>[];
+  TreeNode _constructNodesRecursive(
+      DirectoryInfo directoryInfo, NodeBuilder nodeBuilder) {
+    final children = <TreeNode>[];
     for (var child in directoryInfo.children) {
-      children.add(_constructNodesRecursive(child));
+      children.add(_constructNodesRecursive(child, nodeBuilder));
     }
-    return _createNode(directoryInfo, children);
+    return _createNode(directoryInfo, children, nodeBuilder);
   }
 
-  Node _createNode(DirectoryInfo directoryInfo, List<Node> children) => Node(
+  TreeNode _createNode(DirectoryInfo directoryInfo, List<TreeNode> children,
+          NodeBuilder nodeBuilder) =>
+      TreeNode(
         children: children,
-        key: directoryInfo.path,
-        label: directoryInfo.name,
-        icon: Icons.folder,
-        expanded: true,
+        content: nodeBuilder.call(directoryInfo),
       );
 }
