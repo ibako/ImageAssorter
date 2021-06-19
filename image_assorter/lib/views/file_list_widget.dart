@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_assorter/controllers/file_list_controller.dart';
+import 'package:image_assorter/controllers/file_row_controller.dart';
 import 'package:image_assorter/data/file_info.dart';
 import 'package:image_assorter/helpers/async_widget_helper.dart';
 
@@ -25,10 +26,12 @@ class _FileListState extends State<FileListWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: createStreamBuilder(_controller.eventStream.stream,
-            defaultWidget: _buildList),
-      );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: createStreamBuilder(_controller.eventStream.stream,
+          defaultWidget: _buildList),
+    );
+  }
 
   Widget _buildList() {
     final fileList = _controller.getFileList()
@@ -40,7 +43,7 @@ class _FileListState extends State<FileListWidget> {
             bottom: BorderSide(color: Colors.black38),
           ),
         ),
-        child: _FileRowWidget(fileList[index]),
+        child: _FileRowWidget(fileList[index], _controller),
       ),
       itemCount: fileList.length,
     );
@@ -51,22 +54,25 @@ class _FileListState extends State<FileListWidget> {
 
 class _FileRowWidget extends StatefulWidget {
   final FileInfo _fileInfo;
+  final FileListController _parentController;
 
-  _FileRowWidget(this._fileInfo);
+  _FileRowWidget(this._fileInfo, this._parentController);
 
   @override
-  _FileRowState createState() => _FileRowState(_fileInfo);
+  _FileRowState createState() => _FileRowState(_fileInfo, _parentController);
 }
 
 class _FileRowState extends State<_FileRowWidget> {
   static const double _imageHeight = 42;
 
   final FileInfo _fileInfo;
-  late FileRowController _controller = FileRowController(_fileInfo);
+  final FileListController _parentController;
+  late FileRowController _controller =
+      FileRowController(_fileInfo, _parentController);
   final _listTextStyleNormal = const TextStyle(fontSize: 18);
   final _listTextStyleError = const TextStyle(fontSize: 18, color: Colors.red);
 
-  _FileRowState(this._fileInfo);
+  _FileRowState(this._fileInfo, this._parentController);
 
   @override
   Widget build(BuildContext context) => ListTile(
@@ -87,7 +93,7 @@ class _FileRowState extends State<_FileRowWidget> {
         trailing: Icon(
           Icons.more_vert,
         ),
-        onTap: () {},
+        onTap: () => _controller.onTap(),
       );
 
   Future<Widget> _createThumbnail(FileInfo info) {

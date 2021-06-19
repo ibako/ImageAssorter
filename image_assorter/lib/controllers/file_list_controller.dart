@@ -31,25 +31,3 @@ class FileListController {
     eventStream.close();
   }
 }
-
-// ---------------------------------------------------------------------
-
-/// ファイルリストの1行の model/view をつなぐ
-class FileRowController {
-  final FileInfo fileInfo;
-  final eventStream = StreamController<UpdateNotificationEvent>();
-
-  bool get isError => _isError;
-  bool _isError = false;
-
-  FileRowController(this.fileInfo);
-
-  void setAsError() {
-    _isError = true;
-    eventStream.add(UpdateNotificationEvent.updated);
-  }
-
-  void dispose() {
-    eventStream.close();
-  }
-}
