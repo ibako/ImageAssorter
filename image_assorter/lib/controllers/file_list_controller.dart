@@ -11,7 +11,7 @@ class FileListController {
 
   /// リストを更新します。
   void update() {
-    final currentDirectory = AppSetting().currentDirectoryPath;
+    final currentDirectory = AppSetting().currentDirectoryPath!;
     final searcher = _fileSearchers.putIfAbsent(
         currentDirectory, () => FileSearcher(currentDirectory));
 
